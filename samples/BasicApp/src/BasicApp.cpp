@@ -10,7 +10,7 @@ class BasicApp : public App {
   public:
 	// Cinder will call 'mouseDrag' when the user moves the mouse while holding one of its buttons.
 	// See also: mouseMove, mouseDown, mouseUp and mouseWheel.
-	void mouseDrag( MouseEvent event ) override;
+	void mouseDown( MouseEvent event ) override;
 
 	// Cinder will call 'keyDown' when the user presses a key on the keyboard.
 	// See also: keyUp.
@@ -29,7 +29,7 @@ void prepareSettings( BasicApp::Settings* settings )
 	settings->setMultiTouchEnabled( false );
 }
 
-void BasicApp::mouseDrag( MouseEvent event )
+void BasicApp::mouseDown( MouseEvent event )
 {
 	// Store the current mouse position in the list.
 	mPoints.push_back( event.getPos() );
