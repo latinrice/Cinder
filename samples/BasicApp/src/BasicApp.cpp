@@ -70,9 +70,7 @@ void BasicApp::draw()
 	// start constructing a line strip, 'vertex' will add a point to the
 	// line strip and 'end' will execute the draw calls on the GPU.
 	gl::begin( GL_LINE_STRIP );
-	for( const vec2 &point : mPoints ) {
-		gl::vertex( point );
-	}
+	std::for_each(mPoints.begin(), mPoints.end(), static_cast<void(*)(const vec2&)>(gl::vertex));
 	gl::end();
 }
 
