@@ -6,7 +6,7 @@ using namespace ci;
 using namespace ci::app;
 
 typedef std::vector<vec2> MyLine;
-typedef std::vector<vec2> MyCurve;
+typedef std::pair<std::vector<vec2>, Color> MyCurve;
 
 // We'll create a new Cinder Application by deriving from the App class.
 class BasicApp : public App {
@@ -15,7 +15,7 @@ class BasicApp : public App {
 	// See also: mouseMove, mouseDown, mouseUp and mouseWheel.
 	void mouseDrag(MouseEvent event) override;
 
-	//void mouseDown( MouseEvent event ) override;
+	void mouseDown( MouseEvent event ) override;
 
 	void mouseUp(MouseEvent event) override;
 
@@ -33,6 +33,11 @@ class BasicApp : public App {
 	MyLine mCurrentLine;
 	std::vector<MyCurve> mCurves;
 	MyCurve mCurrentCurve;
+	Color mCurrentPencilColor = Color(1.0f, 0.0f, 0.0f);
+	Rectf pallete = Rectf(0, 0, 300, 100);
+	Rectf redColor = Rectf(20, 20, 80, 80);
+	Rectf greenColor = Rectf(120, 20, 180, 80);
+	Rectf blueColor = Rectf(220, 20, 280, 80);
 };
 
 void prepareSettings( BasicApp::Settings* settings )
@@ -42,7 +47,10 @@ void prepareSettings( BasicApp::Settings* settings )
 
 void BasicApp::mouseDrag(MouseEvent event)
 {
-	mCurrentCurve.push_back(event.getPos());
+	if ((pallete.getX1() <= event.getX()) && (pallete.getY1() <= event.getY()) && (pallete.getX2() >= event.getX()) && (pallete.getY2() >= event.getY()))
+		return;
+	mCurrentCurve.second = mCurrentPencilColor;
+	mCurrentCurve.first.push_back(event.getPos());
 }
 
 //void BasicApp::mouseDown( MouseEvent event )
@@ -61,10 +69,29 @@ void BasicApp::mouseDrag(MouseEvent event)
 //	}
 //}
 
+void BasicApp::mouseDown(MouseEvent event)
+{
+	if ((pallete.getX1() <= event.getX()) && (pallete.getY1() <= event.getY()) && (pallete.getX2() >= event.getX()) && (pallete.getY2() >= event.getY()))
+	{
+		if ((redColor.getX1() <= event.getX()) && (redColor.getY1() <= event.getY()) && (redColor.getX2() >= event.getX()) && (redColor.getY2() >= event.getX()))
+		{
+			mCurrentPencilColor = Color(1.0f, 0.0f, 0.0f);
+		}
+		else if ((greenColor.getX1() <= event.getX()) && (greenColor.getY1() <= event.getY()) && (greenColor.getX2() >= event.getX()) && (greenColor.getY2() >= event.getY()))
+		{
+			mCurrentPencilColor = Color(0.0f, 1.0f, 0.0f);
+		}
+		else if ((blueColor.getX1() <= event.getX()) && (blueColor.getY1() <= event.getY()) && (blueColor.getX2() >= event.getX()) && (blueColor.getY2() >= event.getY()))
+		{
+			mCurrentPencilColor = Color(0.0f, 0.0f, 1.0f);
+		}
+	}
+}
+
 void BasicApp::mouseUp(MouseEvent event)
 {
 	mCurves.push_back(mCurrentCurve);
-	mCurrentCurve.clear();
+	mCurrentCurve.first.clear();
 }
 
 void BasicApp::keyDown( KeyEvent event )
@@ -91,8 +118,27 @@ void BasicApp::keyDown( KeyEvent event )
 void drawCurve(MyCurve curve)
 {
 	gl::begin(GL_LINE_STRIP);
-	std::for_each(curve.begin(), curve.end(), static_cast<void(*)(const vec2&)>(gl::vertex));
+	gl::color(curve.second);
+	std::for_each(curve.first.begin(), curve.first.end(), static_cast<void(*)(const vec2&)>(gl::vertex));
 	gl::end();
+}
+
+void drawPallete(Rectf pallete, Rectf r, Rectf g, Rectf b, Color curCol)
+{
+	gl::color(0.8f, 0.8f, 0.8f);
+	gl::drawSolidRect(pallete);
+
+	gl::color(1.0f, 0.0f, 0.0f);
+	gl::drawSolidRect(r);
+
+	gl::color(0.0f, 1.0f, 0.0f);
+	gl::drawSolidRect(g);
+
+	gl::color(0.0f, 0.0f, 1.0f);
+	gl::drawSolidRect(b);
+
+	gl::color(curCol);
+	gl::drawSolidRect(Rectf(0, 0, 10, 10));
 }
 
 void BasicApp::draw()
@@ -104,7 +150,6 @@ void BasicApp::draw()
 	// Set the current draw color to orange by setting values for
 	// red, green and blue directly. Values range from 0 to 1.
 	// See also: gl::ScopedColor
-	gl::color( 1.0f, 0.5f, 0.25f );
 
 	// We're going to draw a line through all the points in the list
 	// using a few convenience functions: 'begin' will tell OpenGL to
@@ -116,6 +161,8 @@ void BasicApp::draw()
 	//std::for_each(mLines.begin(), mLines.end(), [](MyLine line) { gl::drawLine(line[0], line[1]); });
 	std::for_each(mCurves.begin(), mCurves.end(), drawCurve);
 	drawCurve(mCurrentCurve);
+
+	drawPallete(pallete, redColor, greenColor, blueColor, mCurrentPencilColor);
 }
 
 // This line tells Cinder to actually create and run the application.
